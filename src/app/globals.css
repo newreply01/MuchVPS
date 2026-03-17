@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #020617;
+    --primary: #6366f1;
+    --secondary: #f1f5f9;
+    --muted: #f1f5f9;
+    --accent: #f1f5f9;
+    --border: #e2e8f0;
+  }
+
+  .dark {
+    --background: #020617;
+    --foreground: #f8fafc;
+    --primary: #818cf8;
+    --secondary: #1e293b;
+    --muted: #1e293b;
+    --accent: #1e293b;
+    --border: #334155;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply antialiased;
+  }
+}
+
+/* Zeabur-specific styles */
+.gradient-bg {
+  background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+}
+
+.dark .gradient-bg {
+  background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.1) 0%, transparent 60%);
+}

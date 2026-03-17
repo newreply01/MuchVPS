@@ -1,0 +1,77 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - link "Z Zeabur" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: Z
+        - generic [ref=e7]: Zeabur
+      - navigation [ref=e8]:
+        - link "項目" [ref=e9] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e10]
+          - generic [ref=e15]: 項目
+        - link "市場" [ref=e16] [cursor=pointer]:
+          - /url: /marketplace
+          - img [ref=e17]
+          - generic [ref=e21]: 市場
+        - link "計費" [ref=e22] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e23]
+          - generic [ref=e25]: 計費
+        - link "設置" [ref=e26] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e27]
+          - generic [ref=e30]: 設置
+      - button "縮小欄位" [ref=e32]:
+        - img [ref=e33]
+        - generic [ref=e35]: 縮小欄位
+    - generic [ref=e36]:
+      - banner [ref=e37]:
+        - generic [ref=e39]:
+          - img [ref=e40]
+          - textbox "搜尋專案或服務..." [ref=e43]
+        - generic [ref=e44]:
+          - button [ref=e45]:
+            - img [ref=e46]
+          - button [ref=e47]:
+            - img [ref=e48]
+          - button "Toggle theme" [ref=e51]:
+            - img [ref=e52]
+          - img [ref=e59]
+      - main [ref=e62]:
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - heading "項目管理" [level=1] [ref=e66]
+              - paragraph [ref=e67]: 管理您的所有專案與服務環境。
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - img [ref=e70]
+                - textbox "搜尋項目..." [active] [ref=e73]: Marketing
+              - button "新建項目" [ref=e74]:
+                - img [ref=e75]
+                - text: 新建項目
+          - generic [ref=e77] [cursor=pointer]:
+            - img [ref=e79]
+            - heading "新建頂目" [level=3] [ref=e80]
+            - paragraph [ref=e81]:
+              - text: 從 GitHub 導入或從市場
+              - text: 快速部署服務
+      - button [ref=e82]:
+        - img [ref=e83]
+  - generic [ref=e90] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e91]:
+      - img [ref=e92]
+    - generic [ref=e95]:
+      - button "Open issues overlay" [ref=e96]:
+        - generic [ref=e97]:
+          - generic [ref=e98]: "0"
+          - generic [ref=e99]: "1"
+        - generic [ref=e100]: Issue
+      - button "Collapse issues badge" [ref=e101]:
+        - img [ref=e102]
+  - alert [ref=e104]
+```

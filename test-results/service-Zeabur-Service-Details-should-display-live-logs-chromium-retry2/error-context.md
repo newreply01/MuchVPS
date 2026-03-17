@@ -1,0 +1,131 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - link "Z Zeabur" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: Z
+        - generic [ref=e7]: Zeabur
+      - navigation [ref=e8]:
+        - link "項目" [ref=e9] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e10]
+          - generic [ref=e15]: 項目
+        - link "市場" [ref=e16] [cursor=pointer]:
+          - /url: /marketplace
+          - img [ref=e17]
+          - generic [ref=e21]: 市場
+        - link "計費" [ref=e22] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e23]
+          - generic [ref=e25]: 計費
+        - link "設置" [ref=e26] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e27]
+          - generic [ref=e30]: 設置
+      - button "縮小欄位" [ref=e32]:
+        - img [ref=e33]
+        - generic [ref=e35]: 縮小欄位
+    - generic [ref=e36]:
+      - banner [ref=e37]:
+        - generic [ref=e39]:
+          - img [ref=e40]
+          - textbox "搜尋專案或服務..." [ref=e43]
+        - generic [ref=e44]:
+          - button [ref=e45]:
+            - img [ref=e46]
+          - button [ref=e47]:
+            - img [ref=e48]
+          - button "Toggle theme" [ref=e51]:
+            - img [ref=e52]
+          - img [ref=e59]
+      - main [ref=e62]:
+        - generic [ref=e63]:
+          - button "返回專案" [ref=e64]:
+            - img [ref=e65]
+            - text: 返回專案
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - img [ref=e70]
+              - generic [ref=e73]:
+                - heading "api" [level=1] [ref=e74]
+                - generic [ref=e75]:
+                  - generic [ref=e76]: "ID: api-svc-9901"
+                  - generic [ref=e78]:
+                    - img [ref=e79]
+                    - generic [ref=e82]: Live
+            - generic [ref=e83]:
+              - button "重新部署" [ref=e84]:
+                - img [ref=e86]
+                - text: 重新部署
+              - button "重新啟動" [ref=e89]
+              - button "停止代放" [ref=e90]
+          - generic [ref=e92]:
+            - generic [ref=e93]: "上次部署狀態: 成功"
+            - generic [ref=e94]: 2 分鐘前
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - img [ref=e100]
+                - text: CPU 使用率
+              - generic [ref=e103]: 1.2%
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - img [ref=e106]
+                - text: 內存使用
+              - generic [ref=e108]: 245 MB
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - img [ref=e111]
+                - text: 總請求數
+              - generic [ref=e113]: 12,401
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - img [ref=e116]
+                - text: 響應延遲
+              - generic [ref=e118]: 24 ms
+          - generic [ref=e119]:
+            - button "日誌" [ref=e120]:
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - text: 日誌
+            - button "網絡" [ref=e124]:
+              - generic [ref=e125]:
+                - img [ref=e126]
+                - text: 網絡
+            - button "環境變量" [ref=e129]:
+              - generic [ref=e130]:
+                - img [ref=e131]
+                - text: 環境變量
+            - button "設置" [ref=e133]:
+              - generic [ref=e134]:
+                - img [ref=e135]
+                - text: 設置
+          - generic [ref=e139]:
+            - generic [ref=e140]:
+              - generic [ref=e141]: 實時日誌流
+              - button "下載日誌" [ref=e142]
+            - generic [ref=e143]:
+              - generic [ref=e144]: "$[12:30:01] INFO: Initializing container..."
+              - generic [ref=e145]: "$[12:30:03] INFO: Loading environment variables..."
+              - generic [ref=e146]: "$[12:30:05] INFO: Connecting to database..."
+              - generic [ref=e147]: "$[12:30:06] SUCCESS: Database connected."
+              - generic [ref=e148]: "$[12:30:07] INFO: Starting server on port 3000..."
+              - generic [ref=e149]: "$[12:30:08] SUCCESS: Server is ready!"
+      - button [ref=e150]:
+        - img [ref=e151]
+  - generic [ref=e158] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e159]:
+      - img [ref=e160]
+    - generic [ref=e163]:
+      - button "Open issues overlay" [ref=e164]:
+        - generic [ref=e165]:
+          - generic [ref=e166]: "0"
+          - generic [ref=e167]: "1"
+        - generic [ref=e168]: Issue
+      - button "Collapse issues badge" [ref=e169]:
+        - img [ref=e170]
+  - alert [ref=e172]
+```
