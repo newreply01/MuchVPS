@@ -11,7 +11,7 @@ import { RegionMap } from "@/components/dashboard/region-map";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { EnvEditor } from "@/components/dashboard/env-editor";
 import { NetworkConfig } from "@/components/dashboard/network-config";
-import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics, executeCommand } from "@/app/actions/service";
+import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics, executeCommand, createSnapshot, getSnapshots, restoreSnapshot } from "@/app/actions/service";
 
 interface ServiceClientProps {
   projectId: string;
@@ -186,7 +186,7 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
 
       {/* Tabs Nav */}
       <div className="flex items-center gap-1 bg-muted/30 p-1 rounded-2xl border w-fit">
-        {["overview", "topology", "logs", "terminal", "metrics", "regions", "settings"].map((tab) => (
+        {["overview", "topology", "logs", "terminal", "snapshots", "metrics", "regions", "settings"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -199,6 +199,7 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
              tab === "topology" ? "流量拓撲" : 
              tab === "logs" ? "日誌記錄" : 
              tab === "terminal" ? "終端機控制" :
+             tab === "snapshots" ? "快照與備份" :
              tab === "metrics" ? "性能指標" :
              tab === "regions" ? "全球部署" : "服務設置"}
           </button>
@@ -208,6 +209,12 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
       {/* Tab Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+          {activeTab === "snapshots" && (
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
+              <SnapshotsView serviceId={service.id} />
+            </motion.div>
+          )}
+
           {activeTab === "terminal" && (
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
               <TerminalView serviceId={service.id} />

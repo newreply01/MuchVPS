@@ -126,5 +126,19 @@ export const dockerManager = {
     } catch (e: any) {
       return `Error: ${e.message}`;
     }
+  },
+
+  async createSnapshot(name: string, snapshotImageName: string) {
+    try {
+      const container = docker.getContainer(name);
+      // Pause to ensure consistent state
+      await container.pause();
+      await container.commit({ repo: snapshotImageName });
+      await container.unpause();
+      return true;
+    } catch (e) {
+      console.error("Snapshot error:", e);
+      return false;
+    }
   }
 };

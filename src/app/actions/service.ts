@@ -257,3 +257,61 @@ export async function executeCommand(serviceId: string, command: string) {
   const name = `muchvps-${serviceId}`;
   return await dockerManager.execute(name, command);
 }
+
+export async function createSnapshot(serviceId: string, name: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId }
+  });
+
+  if (!service) throw new Error("Service not found");
+
+  const snapshotImageName = `muchvps-snap-${serviceId}-${Date.now()}`;
+  const success = await dockerManager.createSnapshot(`muchvps-${serviceId}`, snapshotImageName);
+
+  if (success) {
+    return await (prisma as any).snapshot.create({
+      data: {
+        serviceId,
+        name,
+        imageName: snapshotImageName
+      }
+    });
+  }
+  throw new Error("Failed to create snapshot");
+}
+
+export async function getSnapshots(serviceId: string) {
+  return await (prisma as any).snapshot.findMany({
+    where: { serviceId },
+    orderBy: { createdAt: "desc" }
+  });
+}
+
+export async function restoreSnapshot(serviceId: string, snapshotId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId }
+  });
+
+  const snapshot = await (prisma as any).snapshot.findUnique({
+    where: { id: snapshotId }
+  });
+
+  if (!service || !snapshot) throw new Error("Not found");
+
+  // Update service image and restart
+  await (prisma as any).service.update({
+    where: { id: serviceId },
+    data: { 
+      image: snapshot.imageName,
+      imageTag: "latest"
+    }
+  });
+
+  return await rebuildService(serviceId);
+}
