@@ -11,14 +11,40 @@ interface LogEntry {
   createdAt: string | Date;
 }
 
-interface LogsViewProps {
-  initialLogs: LogEntry[];
-}
-
-export function LogsView({ initialLogs }: LogsViewProps) {
-  const [logs] = useState<LogEntry[]>(initialLogs);
+export function LogsView({ initialLogs, serviceId }: { initialLogs: any[], serviceId?: string }) {
+  const [logs, setLogs] = useState<LogEntry[]>(initialLogs);
   const [filter, setFilter] = useState("all");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!serviceId) return;
+    
+    const fetchLogs = async () => {
+      try {
+        const { getRealServiceLogs } = await import("@/app/actions/service");
+        const content = await getRealServiceLogs(serviceId);
+        if (content && content.trim()) {
+           // Create a single log entry from the tail output
+           const newLog = {
+             id: Date.now().toString(),
+             content,
+             level: "INFO",
+             createdAt: new Date()
+           };
+           setLogs(prev => {
+             // Avoid too many logs in memory
+             const updated = [...prev, newLog];
+             return updated.slice(-50);
+           });
+        }
+      } catch (e) {
+        console.error("Log fetch failed", e);
+      }
+    };
+
+    const interval = setInterval(fetchLogs, 3000);
+    return () => clearInterval(interval);
+  }, [serviceId]);
 
   useEffect(() => {
     if (scrollRef.current) {

@@ -11,7 +11,8 @@ import { RegionMap } from "@/components/dashboard/region-map";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { EnvEditor } from "@/components/dashboard/env-editor";
 import { NetworkConfig } from "@/components/dashboard/network-config";
-import { simulateActivity, startService, stopService, restartService, rebuildService, deleteService, updateServiceResources } from "@/app/actions/service";
+import { simulateActivity, startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics } from "@/app/actions/service";
+import { useEffect } from "react";
 
 interface ServiceClientProps {
   projectId: string;
@@ -23,9 +24,24 @@ interface ServiceClientProps {
 export function ServiceClient({ projectId, service, initialMetrics, initialLogs }: ServiceClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
-  const [metrics] = useState(initialMetrics);
+  const [metrics, setMetrics] = useState(initialMetrics);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (service.status !== "live") return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const newMetric = await updateServiceMetrics(service.id);
+        setMetrics(prev => [...prev.slice(-19), newMetric]);
+      } catch (e) {
+        console.error("Metric update failed", e);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [service.id, service.status]);
   
   const [cpu, setCpu] = useState(service.specCpu);
   const [ram, setRam] = useState(service.specRam);
@@ -363,7 +379,7 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
 
           {activeTab === "logs" && (
             <div className="min-h-[600px] border rounded-[2rem] overflow-hidden bg-black shadow-2xl">
-               <LogsView initialLogs={initialLogs} />
+               <LogsView initialLogs={initialLogs} serviceId={service.id} />
             </div>
           )}
 
