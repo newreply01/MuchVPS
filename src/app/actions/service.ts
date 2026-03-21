@@ -208,7 +208,7 @@ export async function updateServiceResources(
       specCpu: resources.specCpu,
       specRam: resources.specRam,
       specDisk: resources.specDisk,
-    },
+    } as any,
   });
 
   revalidatePath(`/dashboard/${service.projectId}/services/${serviceId}`);

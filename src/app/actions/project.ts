@@ -60,7 +60,7 @@ export async function createService(projectId: string, data: {
       specDisk: data.specDisk,
       subdomain: subdomain,
       status: "live",
-    },
+    } as any,
   });
 
   revalidatePath(`/dashboard/${projectId}`);
