@@ -11,7 +11,7 @@ import { RegionMap } from "@/components/dashboard/region-map";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { EnvEditor } from "@/components/dashboard/env-editor";
 import { NetworkConfig } from "@/components/dashboard/network-config";
-import { simulateActivity, startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics } from "@/app/actions/service";
+import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics } from "@/app/actions/service";
 import { useEffect } from "react";
 
 interface ServiceClientProps {
