@@ -1,8 +1,33 @@
-import { prisma } from "./prisma";
-import { dockerManager } from "./docker-manager";
 import Docker from "dockerode";
+import fs from "fs";
+import path from "path";
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
+const ACCESS_LOG = "/home/xg/czb/logs/access.log";
+
+async function getTraefikMetrics(serviceId: string) {
+  try {
+    if (!fs.existsSync(ACCESS_LOG)) return { requests: 0, latency: 0 };
+    const content = fs.readFileSync(ACCESS_LOG, "utf8");
+    const lines = content.trim().split("\n");
+    
+    // Filter lines for this service in the last minute (rough estimate by taking end of log)
+    const recentLines = lines.slice(-200).filter(l => l.includes(`muchvps-${serviceId}`));
+    
+    const latencies = recentLines.map(l => {
+      const match = l.match(/(\d+)ms$/);
+      return match ? parseInt(match[1]) : 0;
+    }).filter(v => v > 0);
+
+    return {
+      requests: recentLines.length,
+      latency: latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0
+    };
+  } catch (e) {
+    console.error("Log parse error", e);
+    return { requests: 0, latency: 0 };
+  }
+}
 
 async function startEventMonitor() {
   console.log("Starting Docker Event Monitor...");
@@ -52,14 +77,15 @@ async function startMetricsHarvester() {
       for (const c of munchContainers) {
         const serviceId = c.Names[0].replace("/muchvps-", "");
         const stats = await dockerManager.getStats(c.Names[0].replace("/", ""));
+        const traffic = await getTraefikMetrics(serviceId);
         
         await prisma.metric.create({
           data: {
             serviceId,
             cpu: stats.cpu,
             ram: stats.ram,
-            requests: 0, // In real world, parse access logs
-            latency: 0,
+            requests: traffic.requests,
+            latency: Math.round(traffic.latency),
           }
         });
       }
