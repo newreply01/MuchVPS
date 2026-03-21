@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { motion } from "framer-motion";
 import { 
   CreditCard, 
@@ -13,14 +13,28 @@ import {
   Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
- 
+import { useEffect, useState } from "react";
+import { getBillingData } from "@/app/actions/billing";
+
 const mockInvoices = [
   { id: "INV-2024-003", date: "2024-03-01", amount: "$42.50", status: "Paid" },
   { id: "INV-2024-002", date: "2024-02-01", amount: "$38.00", status: "Paid" },
   { id: "INV-2024-001", date: "2024-01-01", amount: "$15.20", status: "Paid" },
 ];
- 
+
 export default function BillingPage() {
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    getBillingData().then(setData).catch(console.error);
+  }, []);
+
+  if (!data) return (
+    <div className="flex h-96 items-center justify-center">
+      <Zap className="w-8 h-8 animate-spin text-primary opacity-20" />
+    </div>
+  );
+
   return (
     <div className="space-y-10 pb-20">
       <div>
@@ -31,9 +45,9 @@ export default function BillingPage() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { label: "當前餘額", value: "$4.82", sub: "預計本月底結算", icon: CreditCard, color: "text-primary" },
-          { label: "本月用量 (預估)", value: "$12.45", sub: "+12% 較上月", icon: TrendingUp, color: "text-green-500" },
-          { label: "下次續約日", value: "2024-04-01", sub: "自動扣款已開啟", icon: Clock, color: "text-blue-500" },
+          { label: "當前餘額", value: `$${data.balance.toFixed(2)}`, sub: "預計本月底結算", icon: CreditCard, color: "text-primary" },
+          { label: "本月用量 (已累計)", value: `$${data.accumulatedCost.toFixed(4)}`, sub: "即時計算中", icon: TrendingUp, color: "text-green-500" },
+          { label: "預計月支出", value: `$${data.estimatedMonthCost.toFixed(2)}`, sub: "基於當前負載", icon: Clock, color: "text-blue-500" },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -57,17 +71,13 @@ export default function BillingPage() {
            <div className="p-8 rounded-[2.5rem] bg-zinc-950/40 border border-white/5">
               <div className="flex items-center justify-between mb-8">
                  <h3 className="font-bold text-xl italic font-serif">資源用量分析</h3>
-                 <select className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 ring-primary/20">
-                    <option>過去 30 天</option>
-                    <option>過去 90 天</option>
-                 </select>
               </div>
               
               <div className="space-y-8">
                  {[
-                   { label: "運算資源 (vCPU Hours)", used: 450, total: 1000, icon: Zap },
-                   { label: "記憶體實例 (GB/Month)", used: 12, total: 32, icon: Database },
-                   { label: "全球流量 (Bandwidth)", used: 85, total: 500, icon: Globe },
+                   { label: "運算資源 (vCPU Hours)", used: data.usage.cpuHours, total: 10, icon: Zap },
+                   { label: "記憶體實例 (GB Hours)", used: data.usage.ramGbHours, total: 20, icon: Database },
+                   { label: "全球流量 (Bandwidth GB)", used: data.usage.bandwidth, total: 5, icon: Globe },
                  ].map((item) => (
                    <div key={item.label} className="space-y-3">
                       <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest">
@@ -80,7 +90,7 @@ export default function BillingPage() {
                       <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden">
                          <motion.div 
                            initial={{ width: 0 }}
-                           animate={{ width: `${(item.used / item.total) * 100}%` }}
+                           animate={{ width: `${Math.min((item.used / item.total) * 100, 100)}%` }}
                            transition={{ duration: 1.5, ease: "circOut" }}
                            className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
                          />

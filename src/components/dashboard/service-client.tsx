@@ -64,17 +64,7 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
     }
   };
 
-  const handleTriggerAI = async () => {
-    setIsSimulating(true);
-    try {
-      await simulateActivity(service.id);
-      window.dispatchEvent(new CustomEvent("trigger-ai-scaling", { detail: { service: service.name } }));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsSimulating(false);
-    }
-  };
+  
  
   const handleSaveResources = async () => {
     setIsSavingResources(true);
@@ -193,26 +183,6 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
            </div>
          ))}
 
-         <button 
-           onClick={handleTriggerAI}
-           disabled={isSimulating}
-           className="relative p-6 bg-gradient-to-br from-indigo-900/40 to-primary/20 border border-primary/30 rounded-2xl flex items-center justify-between group overflow-hidden transition-all hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] text-left disabled:opacity-70"
-         >
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/40 transition-all" />
-            <div className="flex items-center gap-4 z-10">
-               <div className="p-3 bg-primary text-white rounded-xl shadow-xl group-hover:rotate-12 transition-transform">
-                  {isSimulating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-               </div>
-               <div>
-                  <p className="text-white text-xs uppercase font-bold tracking-widest flex items-center gap-2">
-                    {isSimulating ? "模擬活動中..." : "AI 狀態優化中"}
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  </p>
-                  <p className="text-zinc-300 text-[11px] mt-1 font-medium leading-tight">檢測到潛在流量峰值，<br/>點擊獲取擴容建議。</p>
-               </div>
-            </div>
-            <TrendingUp className="w-6 h-6 text-primary z-10 group-hover:translate-x-1 transition-transform" />
-         </button>
       </div>
 
       {/* Tabs Nav */}

@@ -1,9 +1,4 @@
-"use server";
-
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
-import { generateMockLog, generateMockMetrics } from "@/lib/log-generator";
 import { dockerManager } from "@/lib/docker-manager";
 
 export async function updateEnvVars(serviceId: string, envVars: { key: string; value: string; isSecret: boolean }[]) {
@@ -41,28 +36,6 @@ export async function updateEnvVars(serviceId: string, envVars: { key: string; v
   return { success: true };
 }
 
-export async function simulateActivity(serviceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  // Verify ownership
-  const service = await prisma.service.findUnique({
-    where: { id: serviceId },
-    include: { project: true },
-  });
-
-  if (!service || service.project.userId !== session.user.id) {
-    throw new Error("Unauthorized");
-  }
-
-  await generateMockLog(serviceId);
-  await generateMockMetrics(serviceId);
-
-  revalidatePath(`/dashboard/${service.projectId}/services/${serviceId}`);
-  return { success: true };
-}
 
 export async function startService(serviceId: string) {
   const session = await auth();
