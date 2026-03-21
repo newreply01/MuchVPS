@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Zap, Check, Clock, Activity, Globe } from "lucide-react";
+import { Plus, Search, Zap, Check, Clock, Activity, Globe, Cpu, HardDrive } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { CreateProjectWizard } from "@/components/dashboard/create-project-wizard";
@@ -22,9 +22,15 @@ interface Project {
 interface DashboardClientProps {
   initialProjects: Project[];
   recentLogs: any[];
+  globalStats: {
+    totalCpu: number;
+    totalRam: number;
+    totalRequests: number;
+    avgLatency: number;
+  };
 }
 
-export function DashboardClient({ initialProjects, recentLogs }: DashboardClientProps) {
+export function DashboardClient({ initialProjects, recentLogs, globalStats }: DashboardClientProps) {
   const [search, setSearch] = useState("");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false);

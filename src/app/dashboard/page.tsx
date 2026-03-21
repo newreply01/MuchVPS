@@ -44,12 +44,27 @@ export default async function DashboardPage() {
     take: 10,
   });
 
+  // Fetch aggregate metrics for all user services
+  const latestMetrics = await Promise.all(
+    projectsFromDb.flatMap(p => p.services).map(async (s) => {
+      const m = await prisma.metric.findFirst({
+        where: { serviceId: s.id },
+        orderBy: { timestamp: "desc" }
+      });
+      return m;
+    })
+  );
+
+  const globalStats = {
+    totalCpu: latestMetrics.reduce((acc, m) => acc + (m?.cpu || 0), 0) / (latestMetrics.length || 1),
+    totalRam: latestMetrics.reduce((acc, m) => acc + (m?.ram || 0), 0) / (latestMetrics.length || 1),
+    totalRequests: latestMetrics.reduce((acc, m) => acc + (m?.requests || 0), 0),
+    avgLatency: latestMetrics.reduce((acc, m) => acc + (m?.latency || 0), 0) / (latestMetrics.filter(m => m?.latency).length || 1)
+  };
+
   const projects = projectsFromDb.map((p) => {
-    // Determine a representative region from services or default
     const region = p.services[0]?.region?.name || "Global";
-    
-    // Calculate last deploy relative time (simple mock for now)
-    const lastDeploy = "Just now"; // In a real app, you'd calculate this from service status/updates
+    const lastDeploy = "Just now";
 
     return {
       id: p.id,
@@ -62,5 +77,5 @@ export default async function DashboardPage() {
     };
   });
 
-  return <DashboardClient initialProjects={projects} recentLogs={recentLogs} />;
+  return <DashboardClient initialProjects={projects} recentLogs={recentLogs} globalStats={globalStats} />;
 }
