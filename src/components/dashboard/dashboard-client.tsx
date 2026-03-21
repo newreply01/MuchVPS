@@ -108,6 +108,32 @@ export function DashboardClient({ initialProjects, recentLogs, globalStats }: Da
         </div>
       </div>
 
+      {/* Global Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: "平均 CPU", value: `${globalStats.totalCpu.toFixed(1)}%`, icon: Cpu, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: "平均 RAM", value: `${globalStats.totalRam.toFixed(1)}%`, icon: HardDrive, color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: "總請求 (1m)", value: globalStats.totalRequests, icon: Activity, color: "text-green-500", bg: "bg-green-500/10" },
+          { label: "平均延遲", value: `${globalStats.avgLatency.toFixed(0)} ms`, icon: Zap, color: "text-yellow-500", bg: "bg-yellow-500/10" },
+        ].map((stat, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="p-6 bg-zinc-950/40 border border-zinc-900 rounded-2xl flex items-center gap-4 hover:border-zinc-800 transition-all group"
+          >
+            <div className={cn("p-3 rounded-xl transition-transform group-hover:scale-110", stat.bg, stat.color)}>
+              <stat.icon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{stat.label}</p>
+              <p className="text-xl font-bold mt-0.5">{stat.value}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
