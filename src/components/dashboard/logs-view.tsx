@@ -1,28 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Terminal, Shield, AlertCircle, CheckCircle2, Info, Search, Filter } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const INITIAL_LOGS = [
-  "[12:30:01] INFO: Initializing container...",
-  "[12:30:03] INFO: Loading environment variables...",
-  "[12:30:05] INFO: Connecting to database...",
-  "[12:30:06] SUCCESS: Database connected.",
-  "[12:30:07] INFO: Starting server on port 3000...",
-  "[12:30:08] SUCCESS: Server is ready!",
-];
+interface LogEntry {
+  id: string;
+  content: string;
+  level: string;
+  createdAt: string | Date;
+}
 
-export function LogsView() {
-  const [logs, setLogs] = useState(INITIAL_LOGS);
+interface LogsViewProps {
+  initialLogs: LogEntry[];
+}
+
+export function LogsView({ initialLogs }: LogsViewProps) {
+  const [logs] = useState<LogEntry[]>(initialLogs);
+  const [filter, setFilter] = useState("all");
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newLine = `[${new Date().toLocaleTimeString()}] INFO: GET /api/health - 200 OK (${Math.floor(Math.random() * 50)}ms)`;
-      setLogs((prev) => [...prev.slice(-49), newLine]);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -30,14 +26,60 @@ export function LogsView() {
     }
   }, [logs]);
 
+  const filteredLogs = logs.filter(l => 
+    filter === "all" || l.level.toLowerCase() === filter.toLowerCase()
+  );
+
   return (
-    <div className="bg-[#0f1117] text-[#e0e1e6] font-mono text-sm p-4 rounded-xl border border-[#334155] h-[500px] overflow-y-auto" ref={scrollRef}>
-      {logs.map((log, i) => (
-        <div key={i} className="mb-1 leading-relaxed">
-          <span className="text-primary/70 mr-2">$</span>
-          {log}
-        </div>
-      ))}
+    <div className="flex flex-col h-[550px] bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl font-mono text-sm">
+      <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
+         <div className="flex items-center gap-3">
+            <Terminal className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">系統實時日誌 (Snapshot)</span>
+         </div>
+         <div className="flex items-center gap-2">
+            {["all", "info", "warn", "error"].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "px-3 py-1 rounded text-[10px] font-bold uppercase transition-all",
+                  filter === f ? "bg-primary text-white" : "text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                {f}
+              </button>
+            ))}
+         </div>
+      </div>
+
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-6 space-y-2 scrollbar-thin scrollbar-thumb-zinc-800"
+      >
+        {filteredLogs.map((log) => (
+          <div key={log.id} className="flex gap-4 group">
+             <span className="text-zinc-600 text-[10px] whitespace-nowrap pt-1 w-24">
+               {new Date(log.createdAt).toLocaleTimeString()}
+             </span>
+             <div className={cn(
+               "flex-1 break-all",
+               log.level === "ERROR" ? "text-red-400" : 
+               log.level === "WARN" ? "text-yellow-400" : 
+               "text-zinc-300"
+             )}>
+               <span className="opacity-50 mr-2">[{log.level}]</span>
+               {log.content}
+             </div>
+          </div>
+        ))}
+        {filteredLogs.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-zinc-600 space-y-4">
+             <Terminal className="w-12 h-12 opacity-20" />
+             <p className="text-sm">暫無日誌數據</p>
+          </div>
+        ) }
+      </div>
     </div>
   );
 }

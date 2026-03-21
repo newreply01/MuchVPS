@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
 import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -37,7 +38,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return user;
       }
-    })
+    }),
+    GitHub({
+      clientId: process.env.GITHUB_ID,
+      clientSecret: process.env.GITHUB_SECRET,
+    }),
   ],
   session: {
     strategy: "jwt",

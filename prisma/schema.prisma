@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,20 +8,19 @@ datasource db {
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -45,8 +41,8 @@ model User {
   image         String?
   password      String?
   accounts      Account[]
-  sessions      Session[]
   projects      Project[]
+  sessions      Session[]
 }
 
 model VerificationToken {
@@ -58,27 +54,66 @@ model VerificationToken {
 }
 
 model Project {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   name      String
   env       String
-  status    String   @default("success")
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String    @default("success")
+  blueprint String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   services  Service[]
 }
 
 model Service {
+  id            String         @id @default(cuid())
+  projectId     String
+  name          String
+  type          String
+  status        String         @default("live")
+  port          Int?
+  specCpu       Float          @default(0.5)
+  specRam       Float          @default(1.0)
+  specDisk      Float          @default(10.0)
+  subdomain     String?        @unique
+  regionId      String?
+  createdAt     DateTime       @default(now())
+  envVars       EnvVar[]
+  logs          Log[]
+  metrics       Metric[]
+  scalingEvents ScalingEvent[]
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  region        Region?        @relation(fields: [regionId], references: [id])
+}
+
+model Region {
+  id       String    @id @default(cuid())
+  name     String
+  country  String
+  icon     String?
+  latency  Int       @default(20)
+  services Service[]
+}
+
+model Metric {
   id        String   @id @default(cuid())
-  projectId String
-  name      String
-  type      String
-  status    String   @default("live")
-  port      Int?
+  serviceId String
+  cpu       Float
+  ram       Float
+  requests  Int
+  latency   Int
+  timestamp DateTime @default(now())
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model ScalingEvent {
+  id        String   @id @default(cuid())
+  serviceId String
+  oldSpec   String
+  newSpec   String
+  reason    String
   createdAt DateTime @default(now())
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  logs      Log[]
-  envVars   EnvVar[]
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 }
 
 model Log {

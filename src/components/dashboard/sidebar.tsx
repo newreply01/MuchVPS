@@ -20,7 +20,7 @@ import { ThemeToggler } from "../ui/theme-toggler";
 const SIDEBAR_ITEMS = [
   { name: "項目", icon: LayoutDashboard, href: "/dashboard" },
   { name: "市場", icon: Package, href: "/marketplace" },
-  { name: "計費", icon: CreditCard, href: "#" },
+  { name: "計費", icon: CreditCard, href: "/dashboard/billing" },
   { name: "設置", icon: Settings, href: "#" },
 ];
 

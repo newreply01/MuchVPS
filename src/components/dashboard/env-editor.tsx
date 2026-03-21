@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Shield, Eye, EyeOff, Save } from "lucide-react";
+import { Plus, Trash2, Shield, Eye, EyeOff, Save, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { updateEnvVars } from "@/app/actions/service";
 
 interface EnvVar {
   key: string;
@@ -10,13 +11,15 @@ interface EnvVar {
   isSecret: boolean;
 }
 
-export function EnvEditor() {
-  const [vars, setVars] = useState<EnvVar[]>([
-    { key: "DATABASE_URL", value: "postgres://user:pass@db.zeabur.app:5432/main", isSecret: true },
-    { key: "API_KEY", value: "zb_live_9901ad823fa", isSecret: true },
-    { key: "NODE_ENV", value: "production", isSecret: false },
-  ]);
+interface EnvEditorProps {
+  serviceId: string;
+  initialVars: EnvVar[];
+}
+
+export function EnvEditor({ serviceId, initialVars }: EnvEditorProps) {
+  const [vars, setVars] = useState<EnvVar[]>(initialVars);
   const [revealAll, setRevealAll] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const addVar = () => setVars([...vars, { key: "", value: "", isSecret: false }]);
   const removeVar = (index: number) => setVars(vars.filter((_, i) => i !== index));
@@ -24,6 +27,19 @@ export function EnvEditor() {
     const newVars = [...vars];
     newVars[index] = { ...newVars[index], [field]: val };
     setVars(newVars);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateEnvVars(serviceId, vars);
+      alert("環境變量已保存！");
+    } catch (error) {
+      console.error(error);
+      alert("保存失敗，請重試。");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -40,8 +56,13 @@ export function EnvEditor() {
            >
              {revealAll ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
            </button>
-           <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold rounded-xl hover:shadow-lg transition-all">
-             <Save className="w-4 h-4" /> 保存更改
+           <button 
+             onClick={handleSave}
+             disabled={isSaving}
+             className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50"
+           >
+             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+             保存更改
            </button>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background text-foreground flex">
       <DashboardSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       
-      <div className={`flex-1 transition-all duration-300 ${collapsed ? "pl-20" : "pl-64"}`}>
+      <div className={`flex-1 transition-all duration-300 ${collapsed ? "pl-20" : "pl-64"} relative`}>
         {/* Dashboard Topbar */}
         <header className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-30 px-8 flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1 max-w-xl">
