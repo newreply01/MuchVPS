@@ -1,3 +1,5 @@
+import { prisma } from "./prisma";
+import { dockerManager } from "./docker-manager";
 import Docker from "dockerode";
 import fs from "fs";
 import path from "path";
