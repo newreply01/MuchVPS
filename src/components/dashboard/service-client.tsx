@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Globe, Shield, ChevronLeft, Cpu, HardDrive, Zap, Activity, TrendingUp, AlertCircle, Sparkles, Loader2, Layout } from "lucide-react";
+import { Terminal, Globe, Shield, ChevronLeft, Cpu, HardDrive, Zap, Activity, TrendingUp, AlertCircle, Sparkles, Loader2, Layout, Plus, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { TopologyView } from "@/components/dashboard/topology-view";
@@ -532,6 +532,126 @@ function TerminalView({ serviceId }: { serviceId: string }) {
         />
         <button type="submit" disabled={isExecuting} className="sr-only">Run</button>
       </form>
+    </div>
+  );
+}
+
+function SnapshotsView({ serviceId }: { serviceId: string }) {
+  const [snapshots, setSnapshots] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newSnapshotName, setNewSnapshotName] = useState("");
+  const router = useRouter();
+
+  const loadSnapshots = async () => {
+    try {
+      const data = await getSnapshots(serviceId);
+      setSnapshots(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSnapshots();
+  }, [serviceId]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSnapshotName.trim() || isCreating) return;
+    setIsCreating(true);
+    try {
+      await createSnapshot(serviceId, newSnapshotName);
+      setNewSnapshotName("");
+      await loadSnapshots();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleRestore = async (snapId: string) => {
+    if (!confirm("確定要將服務還原至此快照嗎？這將重啟您的容器。")) return;
+    try {
+      await restoreSnapshot(serviceId, snapId);
+      router.refresh();
+      alert("還原成功！服務正在重啟。");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="p-8 bg-zinc-950/50 border border-zinc-900 rounded-[2rem] space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+               <Shield className="w-5 h-5" />
+            </div>
+            <div>
+               <h4 className="font-bold text-zinc-100">建立即時快照</h4>
+               <p className="text-xs text-zinc-500 font-medium italic mt-0.5">保存當前磁碟狀態與配置為不可變映像檔</p>
+            </div>
+          </div>
+        </div>
+        
+        <form onSubmit={handleCreate} className="flex gap-4">
+          <input 
+            value={newSnapshotName}
+            onChange={(e) => setNewSnapshotName(e.target.value)}
+            placeholder="快照名稱 (例如: Deployment-V1.2)"
+            className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          />
+          <button 
+            type="submit"
+            disabled={isCreating || !newSnapshotName.trim()}
+            className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
+          >
+            {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            建立快照
+          </button>
+        </form>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        {isLoading ? (
+          <div className="flex justify-center p-12">
+             <Loader2 className="w-8 h-8 animate-spin text-zinc-700" />
+          </div>
+        ) : snapshots.length === 0 ? (
+          <div className="p-12 text-center bg-zinc-950/30 border border-dashed border-zinc-900 rounded-[2rem]">
+             <p className="text-zinc-500 italic font-medium">尚無快照記錄。建立第一個快照以保障您的數據安全。</p>
+          </div>
+        ) : (
+          snapshots.map((snap) => (
+            <div key={snap.id} className="p-6 bg-zinc-950/50 border border-zinc-900 rounded-2xl flex items-center justify-between group hover:border-primary/30 transition-all">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-zinc-900 rounded-xl text-zinc-500 group-hover:text-primary transition-colors">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-zinc-100">{snap.name}</h5>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">{snap.imageName.substring(0, 15)}...</span>
+                    <span className="text-[10px] text-zinc-600">•</span>
+                    <span className="text-[10px] text-zinc-500 font-bold italic">{new Date(snap.createdAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleRestore(snap.id)}
+                className="px-5 py-2 bg-zinc-900 text-zinc-300 font-bold text-xs rounded-xl hover:bg-primary hover:text-white transition-all border border-zinc-800"
+              >
+                還原至此版本
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
