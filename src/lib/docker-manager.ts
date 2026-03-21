@@ -100,5 +100,31 @@ export const dockerManager = {
   async inspect(name: string) {
     const container = docker.getContainer(name);
     return await container.inspect();
+  },
+
+  async execute(name: string, command: string) {
+    try {
+      const container = docker.getContainer(name);
+      const exec = await container.exec({
+        Cmd: ["/bin/sh", "-c", command],
+        AttachStdout: true,
+        AttachStderr: true,
+      });
+      const stream = await (exec.start({ hijack: true, Detach: false }) as Promise<any>);
+      
+      return await new Promise<string>((resolve, reject) => {
+        let output = "";
+        stream.on("data", (chunk: Buffer) => {
+          output += chunk.toString("utf8");
+        });
+        stream.on("end", () => resolve(output.replace(/[\x00-\x1F\x7F-\x9F]/g, "")));
+        stream.on("error", reject);
+        
+        // Timeout after 10 seconds for long running commands
+        setTimeout(() => resolve(output + "\n[Execution Timeout]"), 10000);
+      });
+    } catch (e: any) {
+      return `Error: ${e.message}`;
+    }
   }
 };

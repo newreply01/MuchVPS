@@ -76,6 +76,8 @@ model Service {
   specRam       Float          @default(1.0)
   specDisk      Float          @default(10.0)
   subdomain     String?        @unique
+  image         String         @default("nginx")
+  imageTag      String         @default("alpine")
   regionId      String?
   createdAt     DateTime       @default(now())
   envVars       EnvVar[]

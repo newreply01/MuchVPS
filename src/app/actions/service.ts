@@ -55,7 +55,7 @@ export async function startService(serviceId: string) {
   // Real Docker Action
   await dockerManager.createAndStart({
     name: `muchvps-${service.id}`,
-    image: "nginx:alpine", // Default image for demo
+    image: `${(service as any).image}:${(service as any).imageTag}`,
     subdomain: (service as any).subdomain || service.name.toLowerCase().replace(/\s+/g, "-"),
     cpuLimit: service.specCpu,
     memoryLimit: service.specRam,
@@ -109,7 +109,7 @@ export async function restartService(serviceId: string) {
   await dockerManager.stopAndRemove(`muchvps-${service.id}`);
   await dockerManager.createAndStart({
     name: `muchvps-${service.id}`,
-    image: "nginx:alpine",
+    image: `${(service as any).image}:${(service as any).imageTag}`,
     subdomain: (service as any).subdomain || service.name.toLowerCase().replace(/\s+/g, "-"),
     cpuLimit: service.specCpu,
     memoryLimit: service.specRam,
@@ -241,4 +241,19 @@ export async function updateServiceMetrics(serviceId: string) {
       latency: Math.random() * 10 + 2,
     }
   });
+}
+
+export async function executeCommand(serviceId: string, command: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    include: { project: true }
+  });
+
+  if (!service || service.project.userId !== session.user.id) throw new Error("Unauthorized");
+
+  const name = `muchvps-${serviceId}`;
+  return await dockerManager.execute(name, command);
 }

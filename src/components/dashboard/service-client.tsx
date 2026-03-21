@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Globe, Shield, ChevronLeft, Cpu, HardDrive, Zap, Activity, TrendingUp, AlertCircle, Sparkles, Loader2, Layout } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,8 +11,7 @@ import { RegionMap } from "@/components/dashboard/region-map";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { EnvEditor } from "@/components/dashboard/env-editor";
 import { NetworkConfig } from "@/components/dashboard/network-config";
-import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics } from "@/app/actions/service";
-import { useEffect } from "react";
+import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics, executeCommand } from "@/app/actions/service";
 
 interface ServiceClientProps {
   projectId: string;
@@ -187,7 +186,7 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
 
       {/* Tabs Nav */}
       <div className="flex items-center gap-1 bg-muted/30 p-1 rounded-2xl border w-fit">
-        {["overview", "topology", "logs", "metrics", "regions", "settings"].map((tab) => (
+        {["overview", "topology", "logs", "terminal", "metrics", "regions", "settings"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -199,6 +198,7 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
             {tab === "overview" ? "控制台" : 
              tab === "topology" ? "流量拓撲" : 
              tab === "logs" ? "日誌記錄" : 
+             tab === "terminal" ? "終端機控制" :
              tab === "metrics" ? "性能指標" :
              tab === "regions" ? "全球部署" : "服務設置"}
           </button>
@@ -208,6 +208,12 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
       {/* Tab Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+          {activeTab === "terminal" && (
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
+              <TerminalView serviceId={service.id} />
+            </motion.div>
+          )}
+
           {activeTab === "overview" && (
             <>
                <AnimatePresence mode="wait">
@@ -441,6 +447,84 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function TerminalView({ serviceId }: { serviceId: string }) {
+  const [history, setHistory] = useState<{ cmd: string; out: string }[]>([]);
+  const [input, setInput] = useState("");
+  const [isExecuting, setIsExecuting] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const onExecute = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isExecuting) return;
+
+    const cmd = input.trim();
+    setInput("");
+    setIsExecuting(true);
+    
+    try {
+      const out = await executeCommand(serviceId, cmd);
+      setHistory(prev => [...prev.slice(-19), { cmd, out: out || "[No Output]" }]);
+    } catch (err: any) {
+      setHistory(prev => [...prev.slice(-19), { cmd, out: `Error: ${err.message}` }]);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [history]);
+
+  return (
+    <div className="bg-black border border-zinc-800 rounded-[2rem] overflow-hidden flex flex-col h-[500px] shadow-2xl">
+      <div className="bg-zinc-900/50 px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Terminal className="w-4 h-4 text-primary" />
+          <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Interactive Shell (/bin/sh)</span>
+        </div>
+        <div className="flex gap-1.5 text-zinc-700">
+           <div className="w-2.5 h-2.5 rounded-full bg-current" />
+           <div className="w-2.5 h-2.5 rounded-full bg-current" />
+           <div className="w-2.5 h-2.5 rounded-full bg-current" />
+        </div>
+      </div>
+      
+      <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto font-mono text-xs space-y-4 custom-scrollbar bg-black/40">
+        <div className="text-zinc-500 italic font-mono lowercase tracking-tight">Welcome to MuchVPS Terminal. Type 'ls', 'pwd', or 'env' to start.</div>
+        {history.map((item, i) => (
+          <div key={i} className="space-y-1.5 animate-in fade-in slide-in-from-left-2 transition-all">
+            <div className="flex items-center gap-2">
+              <span className="text-primary font-bold">muchvps@container:~$</span>
+              <span className="text-zinc-100">{item.cmd}</span>
+            </div>
+            <pre className="text-zinc-400 whitespace-pre-wrap pl-4 border-l border-zinc-900 pb-2 font-mono">{item.out}</pre>
+          </div>
+        ))}
+        {isExecuting && (
+          <div className="flex items-center gap-2 text-primary animate-pulse">
+             <Loader2 className="w-3 h-3 animate-spin" />
+             <span className="text-[10px] font-bold uppercase tracking-widest">Executing...</span>
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={onExecute} className="p-4 bg-zinc-950/80 border-t border-zinc-800 flex items-center gap-3">
+        <span className="text-primary font-bold text-xs shrink-0 select-none">muchvps@container:~$</span>
+        <input 
+          autoFocus
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="輸入指令..."
+          className="flex-1 bg-transparent border-none outline-none text-zinc-100 font-mono text-xs placeholder:text-zinc-700" 
+        />
+        <button type="submit" disabled={isExecuting} className="sr-only">Run</button>
+      </form>
     </div>
   );
 }

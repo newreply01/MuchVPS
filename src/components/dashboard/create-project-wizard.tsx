@@ -37,11 +37,14 @@ export function CreateProjectWizard({ isOpen, onClose }: { isOpen: boolean; onCl
       // 2. Create Service (Mocking properties for now)
       setLogs(prev => [...prev, "[DB] Configuring service resources..."]);
       const service = await createService(project.id, {
-        name: `${selectedRepo}-api`,
-        type: "Next.js",
-        regionId: "hkg-1", // Assume this exists from seed
+        name: (window as any).serviceName || `${selectedRepo}-api`,
+        type: "Cloud Service",
+        regionId: "hkg-1",
         specCpu: 0.5,
-        specRam: 1.0
+        specRam: 1.0,
+        specDisk: 10,
+        image: (window as any).selectedImage?.split(":")[0] || "nginx",
+        imageTag: (window as any).selectedImage?.split(":")[1] || "alpine"
       });
       setLogs(prev => [...prev, `[DB] Service created: ${service.id}`]);
 
@@ -200,8 +203,8 @@ export function CreateProjectWizard({ isOpen, onClose }: { isOpen: boolean; onCl
 
               {step === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                  <h2 className="text-3xl font-bold mb-2 text-white">項目基本配置</h2>
-                  <p className="text-zinc-500 mb-8">為您的新服務命名並選擇運行節點。</p>
+                  <h2 className="text-3xl font-bold mb-2 text-white italic font-serif">項目基本配置</h2>
+                  <p className="text-zinc-500 mb-8">為您的新服務命名且選擇 Base Image。</p>
                   
                   <div className="space-y-6">
                     <div className="space-y-2">
@@ -209,9 +212,35 @@ export function CreateProjectWizard({ isOpen, onClose }: { isOpen: boolean; onCl
                       <input 
                         defaultValue={selectedRepo || ""}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-zinc-200 focus:ring-4 focus:ring-primary/10 outline-none transition-all" 
+                        onBlur={(e) => (window as any).serviceName = e.target.value}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] ml-1">Base Image</label>
+                       <div className="grid grid-cols-4 gap-3">
+                          {[
+                            { name: "Nginx", image: "nginx:alpine", icon: Globe },
+                            { name: "Node.js", image: "node:18-alpine", icon: Zap },
+                            { name: "Python", image: "python:3.9-slim", icon: Server },
+                            { name: "Go", image: "golang:1.21-alpine", icon: HardDrive },
+                          ].map((img) => (
+                            <button
+                              key={img.image}
+                              onClick={() => (window as any).selectedImage = img.image}
+                              className={cn(
+                                "p-3 rounded-xl border flex flex-col items-center gap-2 transition-all",
+                                (window as any).selectedImage === img.image ? "bg-primary/10 border-primary" : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-zinc-500"
+                              )}
+                            >
+                               <img.icon className="w-5 h-5" />
+                               <span className="text-[10px] font-bold uppercase">{img.name}</span>
+                            </button>
+                          ))}
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
                        <div className="p-4 bg-zinc-950 border border-primary/30 rounded-2xl flex items-center justify-between">
                           <div className="flex items-center gap-3">
                              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
@@ -220,14 +249,6 @@ export function CreateProjectWizard({ isOpen, onClose }: { isOpen: boolean; onCl
                              <span className="text-sm font-bold text-white">Hong Kong (HKG-1)</span>
                           </div>
                           <Check className="w-4 h-4 text-primary" />
-                       </div>
-                       <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-between opacity-50 grayscale">
-                          <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
-                                <Globe className="w-4 h-4" />
-                             </div>
-                             <span className="text-sm font-bold text-zinc-500">Tokyo (NRT-1)</span>
-                          </div>
                        </div>
                     </div>
                   </div>

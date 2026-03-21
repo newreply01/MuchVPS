@@ -28,7 +28,9 @@ export async function createService(projectId: string, data: {
   regionId: string;
   specCpu: number;
   specRam: number;
-  specDisk: number; // Added
+  specDisk: number;
+  image?: string;
+  imageTag?: string;
 }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -45,7 +47,7 @@ export async function createService(projectId: string, data: {
   }
 
   // Generate a subdomain based on service name
-  const sanitizedName = data.name.toLowerCase().replace(/[^a-z0-0]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const sanitizedName = data.name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   const randomSuffix = Math.random().toString(36).substring(2, 6);
   const subdomain = `${sanitizedName}-${randomSuffix}`;
 
@@ -58,6 +60,8 @@ export async function createService(projectId: string, data: {
       specCpu: data.specCpu,
       specRam: data.specRam,
       specDisk: data.specDisk,
+      image: data.image || "nginx",
+      imageTag: data.imageTag || "alpine",
       subdomain: subdomain,
       status: "live",
     } as any,
