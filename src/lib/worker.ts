@@ -3,6 +3,7 @@ import { dockerManager } from "./docker-manager";
 import Docker from "dockerode";
 import fs from "fs";
 import path from "path";
+import axios from "axios";
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 const ACCESS_LOG = "/home/xg/czb/logs/access.log";
@@ -28,6 +29,43 @@ async function getTraefikMetrics(serviceId: string) {
   } catch (e) {
     console.error("Log parse error", e);
     return { requests: 0, latency: 0 };
+  }
+}
+
+async function performHealthChecks() {
+  const services = await prisma.service.findMany({
+    where: { status: { in: ["live", "unhealthy"] } }
+  });
+
+  for (const service of services) {
+    if (!service.subdomain) continue;
+    
+    try {
+      // Ping the internal traefik route or external if possible
+      // In this dev env, we'll try to reach it via localhost:80 with Host header
+      const url = `http://localhost`;
+      const response = await axios.get(url, {
+        headers: { Host: `${service.subdomain}.muchvps.cloud` },
+        timeout: 5000,
+        validateStatus: () => true // Accept any status to confirm server is up
+      });
+
+      const newStatus = response.status >= 200 && response.status < 500 ? "live" : "unhealthy";
+      
+      if (service.status !== newStatus) {
+        await prisma.service.update({
+          where: { id: service.id },
+          data: { status: newStatus }
+        });
+      }
+    } catch (e) {
+      if (service.status !== "unhealthy") {
+        await prisma.service.update({
+          where: { id: service.id },
+          data: { status: "unhealthy" }
+        });
+      }
+    }
   }
 }
 
@@ -69,10 +107,16 @@ async function startEventMonitor() {
   });
 }
 
-async function startMetricsHarvester() {
-  console.log("Starting Metrics Harvester (Interval: 1m)...");
+export function startMetricsHarvester() {
+  console.log("🚀 Powering up MuchVPS Metrics Harvester...");
+  
   setInterval(async () => {
     try {
+      await performHealthChecks();
+      
+      const services = await prisma.service.findMany({
+        where: { status: "live" }
+      });
       const containers = await docker.listContainers();
       const munchContainers = containers.filter(c => c.Names[0].startsWith("/muchvps-"));
 

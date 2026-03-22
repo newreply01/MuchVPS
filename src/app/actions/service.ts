@@ -315,3 +315,44 @@ export async function restoreSnapshot(serviceId: string, snapshotId: string) {
 
   return await rebuildService(serviceId);
 }
+
+export async function cloneService(serviceId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    include: { envVars: true }
+  });
+
+  if (!service) throw new Error("Not found");
+
+  const newName = `${service.name} (Clone)`;
+  const sanitizedName = newName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const subdomain = `${sanitizedName}-${Math.random().toString(36).substring(2, 6)}`;
+
+  const clonedService = await prisma.service.create({
+    data: {
+      projectId: service.projectId,
+      name: newName,
+      type: service.type,
+      specCpu: service.specCpu,
+      specRam: service.specRam,
+      specDisk: service.specDisk,
+      image: service.image,
+      imageTag: service.imageTag,
+      status: "live",
+      subdomain,
+      envVars: {
+        create: service.envVars.map(ev => ({
+          key: ev.key,
+          value: ev.value,
+          isSecret: ev.isSecret
+        }))
+      }
+    }
+  });
+
+  revalidatePath(`/dashboard/project/${service.projectId}`);
+  return clonedService;
+}

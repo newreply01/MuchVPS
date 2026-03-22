@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Globe, Shield, ChevronLeft, Cpu, HardDrive, Zap, Activity, TrendingUp, AlertCircle, Sparkles, Loader2, Layout, Plus, Clock } from "lucide-react";
+import { Terminal, Globe, Shield, ChevronLeft, Cpu, HardDrive, Zap, Activity, TrendingUp, AlertCircle, Sparkles, Loader2, Layout, Plus, Clock, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { TopologyView } from "@/components/dashboard/topology-view";
@@ -11,7 +11,7 @@ import { RegionMap } from "@/components/dashboard/region-map";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { EnvEditor } from "@/components/dashboard/env-editor";
 import { NetworkConfig } from "@/components/dashboard/network-config";
-import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics, executeCommand, createSnapshot, getSnapshots, restoreSnapshot } from "@/app/actions/service";
+import { startService, stopService, restartService, rebuildService, deleteService, updateServiceResources, updateServiceMetrics, executeCommand, createSnapshot, getSnapshots, restoreSnapshot, cloneService } from "@/app/actions/service";
 
 interface ServiceClientProps {
   projectId: string;
@@ -93,14 +93,14 @@ export function ServiceClient({ projectId, service, initialMetrics, initialLogs 
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight italic font-serif">{service.name}</h1>
-              <span className={cn(
-                "px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-widest border",
-                service.status === "live" ? "bg-green-500/10 text-green-500 border-green-500/20" : 
-                service.status === "building" ? "bg-blue-500/10 text-blue-500 border-blue-500/20 animate-pulse" :
-                "bg-zinc-500/10 text-zinc-500 border-zinc-500/20"
-              )}>
-                {service.status === "live" ? "Live" : service.status === "building" ? "Building" : "Stopped"}
-              </span>
+                 <span className={cn(
+                   "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border",
+                   service.status === "live" ? "bg-green-500/10 text-green-500 border-green-500/20 animate-pulse" : 
+                   service.status === "unhealthy" ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20 animate-pulse" :
+                   "bg-zinc-500/10 text-zinc-500 border-zinc-500/20"
+                 )}>
+                   {service.status === "live" ? "ONLINE" : service.status === "unhealthy" ? "UNHEALTHY" : "OFFLINE"}
+                 </span>
             </div>
             <p className="text-muted-foreground text-sm mt-1">ID: {service.id} • {service.type} 生產環境</p>
           </div>

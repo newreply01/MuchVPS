@@ -9,9 +9,9 @@ import { createProject, createService } from "@/app/actions/project";
 const STEPS = ["選擇藍圖", "資源規格", "網絡配置", "啟動部署"];
 
 const SERVICES_TO_CONFIG = [
-  { id: "erp-backend", name: "Backend Cluster", icon: Cpu, desc: "NestJS Rest API + WebSocket" },
-  { id: "erp-frontend", name: "Frontend Edge", icon: Globe, desc: "Vite React + SSR Optimized" },
-  { id: "postgres", name: "Database Prime", icon: Database, desc: "PostgreSQL 15 Managed" },
+  { id: "erp-backend", name: "Backend Cluster", icon: Cpu, desc: "NestJS Rest API + WebSocket", image: "node", imageTag: "18-alpine" },
+  { id: "erp-frontend", name: "Frontend Edge", icon: Globe, desc: "Vite React + SSR Optimized", image: "nginx", imageTag: "alpine" },
+  { id: "postgres", name: "Database Prime", icon: Database, desc: "PostgreSQL 15 Managed", image: "postgres", imageTag: "15-alpine" },
 ];
 
 const RESOURCE_TIERS = [
@@ -345,7 +345,10 @@ export function BlueprintWizard({ isOpen, onClose }: { isOpen: boolean; onClose:
                             type: "Service",
                             regionId: "hkg-1",
                             specCpu: tier?.name.includes("Pro") ? 2 : tier?.name.includes("Scale") ? 8 : 0.5,
-                            specRam: tier?.name.includes("Pro") ? 4 : tier?.name.includes("Scale") ? 16 : 1.0
+                            specRam: tier?.name.includes("Pro") ? 4 : tier?.name.includes("Scale") ? 16 : 1.0,
+                            specDisk: 10.0,
+                            image: s.image,
+                            imageTag: s.imageTag
                           });
                         }
 
