@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { CreateProjectWizard } from "@/components/dashboard/create-project-wizard";
 import { BlueprintWizard } from "@/components/dashboard/blueprint-wizard";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
+import { PerformanceChart } from "@/components/dashboard/performance-chart";
 
 interface Project {
   id: string;
@@ -28,9 +29,10 @@ interface DashboardClientProps {
     totalRequests: number;
     avgLatency: number;
   };
+  historicalMetrics: any[];
 }
 
-export function DashboardClient({ initialProjects, recentLogs, globalStats }: DashboardClientProps) {
+export function DashboardClient({ initialProjects, recentLogs, globalStats, historicalMetrics }: DashboardClientProps) {
   const [search, setSearch] = useState("");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false);
@@ -44,7 +46,7 @@ export function DashboardClient({ initialProjects, recentLogs, globalStats }: Da
     }
   }, []);
 
-  const filteredProjects = initialProjects.filter(p => 
+  const filteredProjects = initialProjects.filter((p: Project) => 
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.env.toLowerCase().includes(search.toLowerCase())
   );
@@ -134,13 +136,18 @@ export function DashboardClient({ initialProjects, recentLogs, globalStats }: Da
         ))}
       </div>
 
+      {/* Global Performance Trend */}
+      <div className="mt-8">
+        <PerformanceChart data={historicalMetrics} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredProjects.map((project, i) => (
+            {filteredProjects.map((project: Project, i: number) => (
               <Link
                 key={project.id}
-                href={`/dashboard/${project.id}`}
+                href={`/dashboard/project/${project.id}`}
                 className="block h-full relative"
               >
                 <div 

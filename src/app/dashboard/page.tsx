@@ -62,6 +62,31 @@ export default async function DashboardPage() {
     avgLatency: latestMetrics.reduce((acc, m) => acc + (m?.latency || 0), 0) / (latestMetrics.filter(m => m?.latency).length || 1)
   };
 
+  // Fetch aggregate history (last 20 data points)
+  const allHistory = await prisma.metric.findMany({
+    where: {
+      service: {
+        project: { userId: session.user.id }
+      }
+    },
+    orderBy: { timestamp: "desc" },
+    take: 100 // Take 100 and we'll group them
+  });
+
+  // Group by timestamp or just take chunks of latest per service
+  // For a dash, we'll just show the last 20 global averages
+  const historicalMetrics = Array.from({ length: 20 }).map((_, i) => {
+    const slice = allHistory.slice(i * 5, (i + 1) * 5);
+    if (!slice.length) return { timestamp: new Date().toISOString(), cpu: 0, ram: 0, requests: 0, latency: 0 };
+    return {
+      timestamp: slice[0].timestamp.toISOString(),
+      cpu: slice.reduce((acc, m) => acc + m.cpu, 0) / slice.length,
+      ram: slice.reduce((acc, m) => acc + m.ram, 0) / slice.length,
+      requests: slice.reduce((acc, m) => acc + m.requests, 0) / slice.length,
+      latency: slice.reduce((acc, m) => acc + m.latency, 0) / slice.length,
+    };
+  }).reverse();
+
   const projects = projectsFromDb.map((p) => {
     const region = p.services[0]?.region?.name || "Global";
     const lastDeploy = "Just now";
@@ -77,5 +102,5 @@ export default async function DashboardPage() {
     };
   });
 
-  return <DashboardClient initialProjects={projects} recentLogs={recentLogs} globalStats={globalStats} />;
+  return <DashboardClient initialProjects={projects} recentLogs={recentLogs} globalStats={globalStats} historicalMetrics={historicalMetrics} />;
 }
